@@ -10,7 +10,9 @@ class BruteForceAlg extends TravelingSalesmanAlg {
 
       status(distanceVisited, visited)
 
-      if (remaining.isEmpty) Some (Solution (distanceVisited, visited))
+      if (remaining.isEmpty) {
+        Some (Solution (cityMap.connections(visited.last)(visited.head) + distanceVisited, visited.last +: visited))
+      }
       else {
         var localSolution: Option[Solution] = None
         for (l <- remaining) {
