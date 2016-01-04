@@ -1,3 +1,5 @@
+package org.purevalue.roadwarrior
+
 import scala.util.Random
 
 /**

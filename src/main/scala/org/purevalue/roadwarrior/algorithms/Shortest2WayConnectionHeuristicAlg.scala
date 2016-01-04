@@ -1,9 +1,13 @@
+package org.purevalue.roadwarrior.algorithms
+
+import org.purevalue.roadwarrior.{Location, Solution, CityMap, TravelingSalesmanAlg}
+
 /**
   * @author Roman Krüger
   */
-class NeighboursFirstAlg extends TravelingSalesmanAlg {
+class Shortest2WayConnectionHeuristicAlg (cityMap:CityMap) extends TravelingSalesmanAlg(cityMap) {
 
-  override def solve (cityMap: CityMap): Solution = {
+  override def solve: Solution = {
 
     // map values sorted after distance
     val conn: Map[Location, List[(Location, Float)]] = cityMap.connections.keySet.map (
@@ -47,7 +51,7 @@ class NeighboursFirstAlg extends TravelingSalesmanAlg {
 
     def buildWay (visitedLength: Float, visited: List[Location], fragments: Set[List[Location]]): Solution = {
       if (fragments.isEmpty) {
-        Solution (visitedLength + cityMap.connections (visited.last)(visited.head), visited :+ visited.head)
+        Solution (cityMap, visited :+ visited.head)
       }
       else {
         var localSolution: Solution = null
