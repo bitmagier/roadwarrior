@@ -3,7 +3,7 @@ package org.purevalue.roadwarrior
 import scala.util.Random
 
 /**
-  * @author Roman Krüger
+  * @author bitmagier
   */
 class CityMapGenerator {
   val maxX = 1000

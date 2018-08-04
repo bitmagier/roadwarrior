@@ -1,17 +1,20 @@
 package org.purevalue.roadwarrior
 
-import java.util.NoSuchElementException
+import java.time.Duration
+
 
 /**
-  * @author Roman Krüger
+  * @author bitmagier
   */
 case class Location(name:String, x:Int, y:Int)
 
 case class CityMap(connections:Map[Location, Map[Location, Float]])
-case class Solution(cityMap:CityMap, way:List[Location]) {
-  val distance = way.sliding(2).foldLeft(0.0)((sum,elem) => sum + cityMap.connections(elem.head)(elem(1)))
 
-  def checkSolution () = {
+abstract class ASolution(cityMap:CityMap, way:List[Location], solutionFoundAfter: Duration)
+{
+  val distance: Double = way.sliding(2).foldLeft(0.0)((sum,elem) => sum + cityMap.connections(elem.head)(elem(1)))
+
+  private def checkSolution(): Unit = {
     var remaining = cityMap.connections.keySet
     if (way.head != way.last) {
       throw new Exception("Way is not ending where it began")
@@ -31,6 +34,5 @@ case class Solution(cityMap:CityMap, way:List[Location]) {
   checkSolution()
 }
 
-abstract class TravelingSalesmanAlg(cityMap:CityMap) {
-  def solve: Solution
-}
+case class Solution(cityMap:CityMap, way:List[Location], foundAfter: Duration) extends ASolution(cityMap, way, foundAfter)
+case class BestSolution(cityMap:CityMap, way:List[Location], foundAfter: Duration, timeConsumed: Duration) extends ASolution(cityMap, way, foundAfter)

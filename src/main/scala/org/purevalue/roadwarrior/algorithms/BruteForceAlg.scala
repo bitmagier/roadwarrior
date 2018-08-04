@@ -1,51 +1,62 @@
 package org.purevalue.roadwarrior.algorithms
 
-import org.purevalue.roadwarrior.{TravelingSalesmanAlg, Location, CityMap, Solution}
+import java.time.{Duration, Instant}
+
+import org.purevalue.roadwarrior.{BestSolution, CityMap, Location}
 
 /**
-  * @author Roman Krüger
+  * @author bitmagier
   */
-class BruteForceAlg (cityMap: CityMap) extends TravelingSalesmanAlg (cityMap) {
+class BruteForceAlg(cityMap: CityMap, timeLimit: Duration) extends TravelingSalesmanAlg(cityMap, timeLimit) {
+  private var startTime, timeOut: Instant = _
+  private var solutionWay: Option[List[Location]] = None // head = end
+  private var solutionDistance = Float.PositiveInfinity
+  private var solutionDuration: Duration = _
+  private val locations = cityMap.connections.keySet
+  private val startLocation = locations.head
 
-  override def solve: Solution = {
+  private def timeIsUp: Boolean = Instant.now().isAfter(timeOut)
 
-    var solutionWay: Option[List[Location]] = None // head = end
-    var solutionDistance = Float.PositiveInfinity
+  def status(distanceVisited: Float, visited: List[Location]): Unit = {
+    visited.size match {
+      case 1 => println()
+      case 3 => print("\rdistance=" + Math.round(solutionDistance) + ", current:" + visited(2) + " -> " + visited(1) + " -> " + visited.head)
+      case _ =>
+    }
+  }
 
-    def buildWay (visitedDistance: Float, visited: List[Location], remaining: Set[Location]): Unit = {
-      if (visitedDistance > solutionDistance)
-        return
+  def buildWay(visitedDistance: Float, visited: List[Location], remaining: Set[Location]): Unit = {
+    if (timeIsUp) return
 
-      if (remaining.isEmpty) {
-        val fullDistance = visitedDistance + cityMap.connections (visited.head)(visited.last)
-        if (fullDistance < solutionDistance) {
-          solutionWay = Some (visited.last +: visited)
-          solutionDistance = fullDistance
-          status (visitedDistance, visited)
-        }
-        return
+    if (visitedDistance > solutionDistance)
+      return
+
+    if (remaining.isEmpty) {
+      val fullDistance = visitedDistance + cityMap.connections(visited.head)(visited.last)
+      if (fullDistance < solutionDistance) {
+        solutionWay = Some(visited.last +: visited)
+        solutionDistance = fullDistance
+        solutionDuration = Duration.between(startTime, Instant.now())
+        status(visitedDistance, visited)
       }
-
-      status (visitedDistance, visited)
-      for (l <- remaining) {
-        val hopDistance: Float = cityMap.connections (visited.last)(l)
-        val currentDistance = visitedDistance + hopDistance
-        buildWay (currentDistance, l +: visited, remaining - l)
-      }
+      return
     }
 
-    def status (distanceVisited: Float, visited: List[Location]) = {
-      visited.size match {
-        case 1 => println ()
-        case 3 => print ("\rdistance="+Math.round(solutionDistance) + ", current:" + visited(2) + " -> " + visited (1) + " -> " + visited.head)
-        case _ =>
-      }
+    status(visitedDistance, visited)
+
+    for (l <- remaining) {
+      val hopDistance: Float = cityMap.connections(visited.last)(l)
+      val currentDistance = visitedDistance + hopDistance
+      buildWay(currentDistance, l +: visited, remaining - l)
     }
+  }
 
-    val locations = cityMap.connections.keySet
-    val startLocation = locations.head
-    buildWay (0.0f, List (startLocation), locations - startLocation)
+  override def solve(): BestSolution = {
+    startTime = Instant.now()
+    timeOut = startTime.plus(timeLimit)
 
-    Solution(cityMap, solutionWay.get)
+    buildWay(0.0f, List(startLocation), locations - startLocation)
+
+    BestSolution(cityMap, solutionWay.get, solutionDuration, Duration.between(startTime, Instant.now()))
   }
 }
